@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=EmulateIE8">
+    <meta charset="UTF-8">
+    <title>Leitor de Código de Barras (Somente Leitor)</title>
+</head>
+
+<body>
+    <div style="width: 80%;">
+        <input type="text" id="barcode" name="bar"
+            style="padding: 20px; width: 100%; font-size: 18px; border-radius: 5px;" autocomplete="off"
+            spellcheck="false" autofocus>
+
+        <h1>ifihefieh</h1>
+    </div>
+
+    <script>
+        var inputField = document.getElementById('barcode');
+        var barcodeString = '';
+        var lastKeyTime = new Date().getTime();
+        var timeout;
+
+        if (!Array.prototype.includes) {
+            Array.prototype.includes = function (value) {
+                for (var i = 0; i < this.length; i++) {
+                    if (this[i] === value) {
+                        return true;
+                    }
+                }
+                return false;
+            };
+        }
+
+        function preventDefault(e) {
+            if (e.preventDefault) {
+                e.preventDefault();
+            } else {
+                e.returnValue = false;
+            }
+        }
+
+        var controlKeys = ['Tab', 'Enter', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Shift', 'Control', 'Alt', 'Meta', 'CapsLock', 'Escape'];
+
+        if (inputField.addEventListener) {
+            inputField.addEventListener('keydown', handleKeyDown);
+            inputField.addEventListener('paste', handlePaste);
+        } else if (inputField.attachEvent) {
+            inputField.attachEvent('onkeydown', handleKeyDown);
+            inputField.attachEvent('onpaste', handlePaste);
+        }
+
+        function handleKeyDown(e) {
+            e = e || window.event;
+            var key = e.key || e.keyCode;
+
+            if (typeof key === 'number') {
+                switch (key) {
+                    case 13: key = 'Enter'; break;
+                    case 9: key = 'Tab'; break;
+                    case 37: key = 'ArrowLeft'; break;
+                    case 38: key = 'ArrowUp'; break;
+                    case 39: key = 'ArrowRight'; break;
+                    case 40: key = 'ArrowDown'; break;
+                    case 16: key = 'Shift'; break;
+                    case 17: key = 'Control'; break;
+                    case 18: key = 'Alt'; break;
+                    case 20: key = 'CapsLock'; break;
+                    case 27: key = 'Escape'; break;
+                    default: key = String.fromCharCode(key);
+                }
+            }
+
+            if (controlKeys.includes(key)) {
+                if (key === 'Enter') {
+                    preventDefault(e);
+                    if (barcodeString.length > 0) {
+                        processBarcode(barcodeString);
+                    }
+                }
+                return;
+            }
+
+            var now = new Date().getTime();
+            var timeBetweenKeys = now - lastKeyTime;
+
+            if (timeBetweenKeys > 70) {
+                barcodeString = '';
+            }
+
+            lastKeyTime = now;
+
+            if (key.length === 1) {
+                preventDefault(e);
+                barcodeString += key;
+                inputField.value = barcodeString;
+            }
+
+            clearTimeout(timeout);
+            timeout = setTimeout(function () {
+                if (barcodeString.length > 0) {
+                    processBarcode(barcodeString);
+                }
+            }, 50);
+        }
+
+        function handlePaste(e) {
+            e = e || window.event;
+            preventDefault(e);
+        }
+
+        function processBarcode(barcode) {
+            barcodeString = barcode;
+            inputField.value = barcodeString;
+            inputField.focus();
+        }
+
+        inputField.focus();
+    </script>
+</body>
+
+</html>
